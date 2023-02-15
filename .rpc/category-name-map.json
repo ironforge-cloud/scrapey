@@ -1,0 +1,85 @@
+{
+  "Accounts": [
+    "getAccountInfo",
+    "getLargestAccounts",
+    "getMultipleAccounts",
+    "getProgramAccounts",
+    "getVoteAccounts"
+  ],
+  "Miscellaneous": [
+    "getBalance",
+    "getClusterNodes",
+    "getGenesisHash",
+    "getHealth",
+    "getIdentity",
+    "getLeaderSchedule",
+    "getMinimumBalanceForRentExemption",
+    "getRecentPerformanceSamples",
+    "getSignaturesForAddress",
+    "getSignatureStatuses",
+    "getSupply",
+    "getVersion",
+    "requestAirdrop",
+    "getConfirmedSignaturesForAddress2"
+  ],
+  "Block": [
+    "getBlock",
+    "getBlockHeight",
+    "getBlockProduction",
+    "getBlockCommitment",
+    "getBlocks",
+    "getBlocksWithLimit",
+    "getBlockTime",
+    "getFirstAvailableBlock",
+    "getLatestBlockhash",
+    "isBlockhashValid",
+    "getConfirmedBlock",
+    "getConfirmedBlocks",
+    "getConfirmedBlocksWithLimit",
+    "getFeeCalculatorForBlockhash",
+    "getRecentBlockhash"
+  ],
+  "Epoch": [
+    "getEpochInfo",
+    "getEpochSchedule"
+  ],
+  "Fee": [
+    "getFeeForMessage",
+    "getRecentPrioritizationFees",
+    "getFeeRateGovernor",
+    "getFees"
+  ],
+  "Slot": [
+    "getHighestSnapshotSlot",
+    "getMaxRetransmitSlot",
+    "getMaxShredInsertSlot",
+    "getSlot",
+    "getSlotLeader",
+    "getSlotLeaders",
+    "minimumLedgerSlot",
+    "getSnapshotSlot"
+  ],
+  "Inflation": [
+    "getInflationGovernor",
+    "getInflationRate",
+    "getInflationReward"
+  ],
+  "Stake": [
+    "getStakeActivation",
+    "getStakeMinimumDelegation"
+  ],
+  "Token": [
+    "getTokenAccountBalance",
+    "getTokenAccountsByDelegate",
+    "getTokenAccountsByOwner",
+    "getTokenLargestAccounts",
+    "getTokenSupply"
+  ],
+  "Transaction": [
+    "getTransaction",
+    "getTransactionCount",
+    "sendTransaction",
+    "simulateTransaction",
+    "getConfirmedTransaction"
+  ]
+}

@@ -27,39 +27,48 @@ async function fetchPage(url: string) {
 }
 
 enum MethodCategory {
-  Program = "Program",
-  Token = "Token",
-  Account = "Account",
+  Accounts = "Accounts",
   Transaction = "Transaction",
   Block = "Block",
+  Inflation = "Inflation",
+  Slot = "Slot",
+  Stake = "Stake",
   Epoch = "Epoch",
-  Fees = "Fee",
-  Misc = "Miscellaneous",
+  Fee = "Fee",
+  Token = "Token",
+  Miscellaneous = "Miscellaneous",
 }
 
-function getCategory(methodName: string) {
-  if (methodName.toLowerCase().includes("block")) {
+function getCategory(m: string) {
+  const methodName = m.toLowerCase();
+  if (methodName.includes("block")) {
     return MethodCategory.Block;
   }
-  if (methodName.toLowerCase().includes("epoch")) {
+  if (methodName.includes("slot")) {
+    return MethodCategory.Slot;
+  }
+  if (methodName.includes("epoch")) {
     return MethodCategory.Epoch;
   }
-  if (methodName.toLowerCase().includes("fee")) {
-    return MethodCategory.Fees;
+  if (methodName.includes("stake")) {
+    return MethodCategory.Stake;
   }
-  if (methodName.toLowerCase().includes("transaction")) {
-    return MethodCategory.Transaction;
+  if (methodName.includes("inflation")) {
+    return MethodCategory.Inflation;
   }
-  if (methodName.toLowerCase().includes("program")) {
-    return MethodCategory.Program;
+  if (methodName.includes("fee")) {
+    return MethodCategory.Fee;
   }
-  if (methodName.toLowerCase().includes("token")) {
+  if (methodName.includes("token")) {
     return MethodCategory.Token;
   }
-  if (methodName.toLowerCase().includes("account")) {
-    return MethodCategory.Account;
+  if (methodName.includes("transaction")) {
+    return MethodCategory.Transaction;
   }
-  return MethodCategory.Misc;
+  if (methodName.includes("account")) {
+    return MethodCategory.Accounts;
+  }
+  return MethodCategory.Miscellaneous;
 }
 
 async function main() {
@@ -70,6 +79,7 @@ async function main() {
 
   const methodSections = document.getElementsByClassName("DocBlock_boPv");
 
+  const categoryNameMap: { [key: string]: Array<string> } = {};
   const categoryMap: { [key: string]: Array<any> } = {};
 
   const methods = Array<any>();
@@ -79,6 +89,9 @@ async function main() {
       .getElementsByTagName("h2")[0]
       .textContent?.replace(/[\u0000-\u001F\u007F-\u009F-\u200B]/g, "");
     const category = getCategory(methodName!);
+
+    const methodDescription =
+      methodSection.getElementsByTagName("p")[0].textContent;
 
     const deprecated =
       methodSection
@@ -156,45 +169,62 @@ async function main() {
       });
     }
 
-    const sampleRequest = methodSection
+    const codeBlockSections = methodSection
       .getElementsByClassName("CodeSnippets_vVvq")[0]
-      .getElementsByClassName("codeBlockLines_e6Vv")[0]
-      .textContent?.replace(/[\u0000-\u001F\u007F-\u009F-\u200B]/g, "");
-    if (!sampleRequest) {
-      console.log("Sample request not found for method: " + methodName);
+      .getElementsByClassName("codeBlockLines_e6Vv");
+
+    const sampleRequest = codeBlockSections[0].textContent?.replace(
+      /[\u0000-\u001F\u007F-\u009F-\u200B]/g,
+      ""
+    );
+    const sampleResponse = codeBlockSections[1].textContent?.replace(
+      /[\u0000-\u001F\u007F-\u009F-\u200B]/g,
+      ""
+    );
+
+    if (!sampleRequest || !sampleResponse) {
+      console.log(
+        "Sample request/response not found for method: " + methodName
+      );
       continue;
     }
 
     const startIndex = sampleRequest.indexOf("{");
-    let jsonString = sampleRequest
+    let requestJson = sampleRequest
       .slice(startIndex, -1)
       .trim()
       .replace(/\s/g, "");
+    let responseJson = sampleResponse;
 
-    if (jsonString.includes("simulateTransaction")) {
-      jsonString = removeAt(jsonString.length - 4, jsonString);
+    if (requestJson.includes("simulateTransaction")) {
+      requestJson = removeAt(requestJson.length - 4, requestJson);
     }
 
     try {
-      const sampleRequestJson = JSON.parse(jsonString);
+      const sampleRequestJson = JSON.parse(requestJson);
+      const sampleResponseJson = JSON.parse(responseJson);
       const method = {
         name: methodName,
+        description: methodDescription,
         params,
         sampleBody: {
           params: sampleRequestJson.params,
         },
+        sampleResponse: sampleResponseJson,
         category,
         deprecated,
       };
 
       if (categoryMap[category]) {
+        categoryNameMap[category].push(methodName!);
         categoryMap[category].push(method);
       } else {
+        categoryNameMap[category] = [methodName!];
         categoryMap[category] = [method];
       }
       methods.push(method);
     } catch (e) {
-      console.log(jsonString);
+      console.log(requestJson, responseJson);
     }
   }
 
@@ -209,14 +239,16 @@ async function main() {
     .reverse()
     .join("-");
 
+  fs.writeFileSync(`./.rpc/methods.json`, JSON.stringify(methods, null, 2));
+
   fs.writeFileSync(
-    `./.rpc/methods-${now}.json`,
-    JSON.stringify(methods, null, 2)
+    `./.rpc/categorized-method.json`,
+    JSON.stringify(categoryMap, null, 2)
   );
 
   fs.writeFileSync(
-    `./.rpc/categories-${now}.json`,
-    JSON.stringify(categoryMap, null, 2)
+    `./.rpc/category-name-map.json`,
+    JSON.stringify(categoryNameMap, null, 2)
   );
 
   console.log("Found " + methods.length + " methods");
